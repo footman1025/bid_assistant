@@ -106,11 +106,13 @@ dialog {
 }
 
 .stat {
-  min-width: 110px;
+  min-width: 118px;
   padding: 8px 12px;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: #fff;
+  text-align: left;
+  cursor: pointer;
 }
 
 .stat span {

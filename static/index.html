@@ -7,7 +7,7 @@
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="/static/favicon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/static/favicon.png" />
-    <link rel="stylesheet" href="/static/app.css?v=13" />
+    <link rel="stylesheet" href="/static/app.css?v=14" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -81,14 +81,14 @@
             <span>Generate time</span>
             <strong id="stat-time">—</strong>
           </div>
-          <div class="stat">
-            <span>Timeline</span>
-            <strong id="stat-timeline">—</strong>
-          </div>
-          <div class="stat">
-            <span>Budget</span>
-            <strong id="stat-budget">—</strong>
-          </div>
+          <button class="stat" id="focus-timeline" type="button">
+            <span>Expected timeline</span>
+            <strong id="stat-timeline">Not set</strong>
+          </button>
+          <button class="stat" id="focus-budget" type="button">
+            <span>Expected budget</span>
+            <strong id="stat-budget">Not set</strong>
+          </button>
         </div>
         <button class="ghost" id="open-settings" type="button">
           <svg class="icon"><use href="#i-settings"></use></svg>
@@ -118,6 +118,17 @@
           ></textarea>
         </label>
 
+        <div class="metric-row">
+          <label>
+            <span>Expected timeline</span>
+            <input id="timeline" type="text" placeholder="e.g. 2–3 weeks" />
+          </label>
+          <label>
+            <span>Expected budget</span>
+            <input id="budget" type="text" placeholder="e.g. $1,500" />
+          </label>
+        </div>
+
         <div class="field">
           <span>Attachment files</span>
           <label class="drop" id="drop">
@@ -127,17 +138,6 @@
             <em>PDF, Word, TXT, MD, CSV, JSON</em>
           </label>
           <ul class="file-list" id="file-list"></ul>
-        </div>
-
-        <div class="metric-row">
-          <label>
-            <span>Timeline</span>
-            <input id="timeline" type="text" placeholder="e.g. 2–3 weeks" />
-          </label>
-          <label>
-            <span>Budget</span>
-            <input id="budget" type="text" placeholder="e.g. $1,500" />
-          </label>
         </div>
 
         <div class="style-row">
@@ -277,6 +277,6 @@
     </dialog>
 
     <div class="toasts" id="toasts" popover="manual" aria-live="polite"></div>
-    <script src="/static/app.js?v=13" type="module"></script>
+    <script src="/static/app.js?v=14" type="module"></script>
   </body>
 </html>

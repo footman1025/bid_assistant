@@ -86,8 +86,10 @@ function formatDuration(ms) {
 function updateProjectStats() {
   const timeline = timelineInput.value.trim();
   const budget = budgetInput.value.trim();
-  statTimeline.textContent = timeline || "—";
-  statBudget.textContent = budget || "—";
+  statTimeline.textContent = timeline || "Not set";
+  statBudget.textContent = budget || "Not set";
+  localStorage.setItem("bid.timeline", timeline);
+  localStorage.setItem("bid.budget", budget);
 }
 
 function persistSettings() {
@@ -250,6 +252,14 @@ fileList.addEventListener("click", (event) => {
 
 timelineInput.addEventListener("input", updateProjectStats);
 budgetInput.addEventListener("input", updateProjectStats);
+document.querySelector("#focus-timeline").addEventListener("click", () => {
+  timelineInput.focus();
+  timelineInput.scrollIntoView({ behavior: "smooth", block: "center" });
+});
+document.querySelector("#focus-budget").addEventListener("click", () => {
+  budgetInput.focus();
+  budgetInput.scrollIntoView({ behavior: "smooth", block: "center" });
+});
 
 styleSelect.addEventListener("change", updateStyleHint);
 
@@ -486,5 +496,7 @@ downloadBtn.addEventListener("click", () => {
 
 setOutput("Your bid will appear here.", "empty");
 loadSettings();
+timelineInput.value = localStorage.getItem("bid.timeline") || "";
+budgetInput.value = localStorage.getItem("bid.budget") || "";
 fetchStyles();
 updateProjectStats();
