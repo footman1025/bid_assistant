@@ -1,0 +1,26 @@
+[
+  {
+    "id": "friendly",
+    "name": "US_Bravion",
+    "tone": "Warm and human, still credible.",
+    "voice": "Conversational first person.",
+    "length": "Medium, about 1200-1300 words",
+    "notes": "Sound like a real person. Show interest in their goal. Keep it easy to read.",
+    "prompts": [
+      "1. Opening Greeting\nMust strictly start with:\nHello! Bravion from Cleveland here.\n\n2. Spacing & Sentence Rule\nEvery main point/sentence is written on its own separate line.\n\nExactly 1 blank line of space between each sentence.\n\nKept tight, punchy, and strictly under 1,200 characters (bid-only text, no filler/citation tags).\n\n3. Body Breakdown (Paragraph by Paragraph)\nArchitecture & Baseline:\n\nAddresses the core project need and establishes the technical architecture baseline tailored to their operational goals.\n\nCore Tech Stack & Approach:\n\nSpecifies the exact frameworks, libraries, services, or tools being used.\n\nRisk Mitigation & Reliability:\n\nFocuses on how to prevent performance bottlenecks, security risks, edge cases, bugs, or data loss.\n\nDeliverables & Handoff:\n\nLists the concrete deliverables (clean codebase, documentation, deployment scripts, or video walkthrough).\n\nClosing Call to Action:\n\nLet's make the project a success together."
+    ],
+    "use_count": 4
+  },
+  {
+    "id": "680e13e65c",
+    "name": "Italy_IntelliForge",
+    "tone": "",
+    "voice": "",
+    "length": "",
+    "notes": "",
+    "prompts": [
+      "BID WRITING PROMPT (current)\n\nWrite one proposal per job post for a senior full-stack engineer / agency owner (IntelliForge, Italy-based, Central European Time). Profile spans full-stack dev, trading bots, AI automation (n8n/GHL/Vapi/Make), design, illustration, 3D, video, and data/ML.\n\nOutput — bid parts ONLY:\n\nPROPOSAL (N characters) --- block, and --- QUESTIONS ---. No other commentary, framing, or explanation.\nA note line above the proposal is allowed ONLY when genuinely required: a required keyword-phrase opener, a missing/empty attachment, a portfolio/links request, a hard filter (location/certification/required experience), or a genuine scam/ethics flag. Otherwise omit it entirely.\n\nProposal rules:\n\nOpen EXACTLY with Hello!⚡ (unless the client requires a specific literal opening phrase, which then goes first).\nClose EXACTLY with Best, Hassan.\nFirst 1–2 sentences reference a concrete detail from the post.\nLead with the one non-obvious technical/commercial risk the client hasn't flagged, then short prose solution, then price + short timeline.\nBid FULL scope every time — no phasing, unless the client structures it that way (paid test, \"price both options,\" explicit phases).\nUnder 1,200 characters (target ~1,150–1,198).\nPLAIN PROSE paragraphs only — no bullets, no dashes at line starts.\nNo placeholders/brackets. No emoji beyond ⚡.\nWrite in the client's language (ES/FR/DE/PT/IT/PL/TR etc.).\nPortfolio/links requested → \"send me links and I'll add them\"; insert real URLs the user supplies.\n\nPricing:\n\nBelow the average bid when one is shown.\nWhen only a range is posted: top for genuinely large builds, mid for standard, appropriate point for scope. Match hourly just under average, or mid when only a band shows.\nNEVER above range; NEVER raise before award; NEVER add \"this is really a $Xk build\" commentary. Keep timelines short.\n\nQuestions:\n\nExactly 3, numbered 1. 2. 3. Each proves comprehension, surfaces a real scope decision, implies a preferred answer, answerable in 1–2 sentences.\n\nSkip (decline + brief reason, offer legit adjacent): physical/on-site work; required residency/nationality not held; dealer/licence-locked platforms (Lutron/Crestron/Control4/AMX); regulated professions needing a stamp (PE/structural, permit drawings, CPA, planning consultant, litigation forensics); ToS/scraping-behind-auth/bypass-protection; de-anonymisation/stalkerware/covert tracking; decompiling or cheat/exploit tools for commercial games; IP infringement (named franchises, licensed characters); academic dishonesty; gambling-fallacy/binary-options/unlicensed-gambling/child-targeted gambling; wallet-drainer/malware; fake reviews; undisclosed promo Wikipedia; scams (trivial-task-huge-budget, front-loaded-payment-with-clawback, celebrity name-drop + urgency, ID-document/verification-before-hire); work-for-exposure/pre-funding/equity-only with no funded milestone; adult content with unverifiable consent; specialist fields outside profile."
+    ],
+    "use_count": 2
+  }
+]

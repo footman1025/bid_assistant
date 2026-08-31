@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bid Assistant</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/static/favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/static/favicon.png" />
+    <link rel="stylesheet" href="/static/app.css?v=13" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <svg class="icon-sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <symbol id="i-settings" viewBox="0 0 24 24">
+        <path d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"/>
+        <path d="M19.4 13a7.8 7.8 0 0 0 .1-2l2-1.5-2-3.5-2.4.5a8 8 0 0 0-1.7-1L15 3h-4l-.4 2.5a8 8 0 0 0-1.7 1L6.5 6 4.5 9.5 6.5 11a7.8 7.8 0 0 0 0 2l-2 1.5 2 3.5 2.4-.5a8 8 0 0 0 1.7 1L11 21h4l.4-2.5a8 8 0 0 0 1.7-1l2.4.5 2-3.5-2-1.5Z"/>
+      </symbol>
+      <symbol id="i-styles" viewBox="0 0 24 24">
+        <path d="M8 6h13M8 12h13M8 18h13"/>
+        <path d="M4 6h.01M4 12h.01M4 18h.01"/>
+      </symbol>
+      <symbol id="i-paper" viewBox="0 0 24 24">
+        <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/>
+        <path d="M14 3v5h5M9 13h6M9 17h4"/>
+      </symbol>
+      <symbol id="i-upload" viewBox="0 0 24 24">
+        <path d="M12 16V5M8 8l4-4 4 4"/>
+        <path d="M5 19h14"/>
+      </symbol>
+      <symbol id="i-pen" viewBox="0 0 24 24">
+        <path d="M4 20h4L19 9l-4-4L4 16v4Z"/>
+        <path d="M13 7l4 4"/>
+      </symbol>
+      <symbol id="i-copy" viewBox="0 0 24 24">
+        <rect x="8" y="8" width="12" height="12" rx="2"/>
+        <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>
+      </symbol>
+      <symbol id="i-download" viewBox="0 0 24 24">
+        <path d="M12 4v11M8 11l4 4 4-4"/>
+        <path d="M5 20h14"/>
+      </symbol>
+      <symbol id="i-save" viewBox="0 0 24 24">
+        <path d="M5 4h11l3 3v13H5Z"/>
+        <path d="M8 4v5h8M8 20v-6h8v6"/>
+      </symbol>
+      <symbol id="i-close" viewBox="0 0 24 24">
+        <path d="M6 6l12 12M18 6 6 18"/>
+      </symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24">
+        <path d="M12 5v14M5 12h14"/>
+      </symbol>
+      <symbol id="i-trash" viewBox="0 0 24 24">
+        <path d="M5 7h14M10 7V5h4v2M7 7l1 13h8l1-13"/>
+      </symbol>
+      <symbol id="i-check" viewBox="0 0 24 24">
+        <path d="M5 12.5 9.5 17 19 7"/>
+      </symbol>
+      <symbol id="i-key" viewBox="0 0 24 24">
+        <circle cx="8" cy="14" r="3"/>
+        <path d="M11 14h10v3h-3v-3"/>
+      </symbol>
+    </svg>
+    <div class="atmosphere" aria-hidden="true"></div>
+    <header class="topbar">
+      <div class="top">
+        <div class="brand">
+          <img class="brand-mark" src="/static/favicon.svg" alt="" />
+          <div>
+            <p class="eyebrow">Proposal studio</p>
+            <h1>Bid Assistant</h1>
+          </div>
+        </div>
+        <div class="project-stats">
+          <div class="stat">
+            <span>Generate time</span>
+            <strong id="stat-time">—</strong>
+          </div>
+          <div class="stat">
+            <span>Timeline</span>
+            <strong id="stat-timeline">—</strong>
+          </div>
+          <div class="stat">
+            <span>Budget</span>
+            <strong id="stat-budget">—</strong>
+          </div>
+        </div>
+        <button class="ghost" id="open-settings" type="button">
+          <svg class="icon"><use href="#i-settings"></use></svg>
+          Settings
+        </button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <form class="panel" id="bid-form">
+        <div class="panel-head">
+          <span class="step">01</span>
+          <div>
+            <h2>Build the brief</h2>
+            <p>Drop in the job. Choose the voice. Write the bid.</p>
+          </div>
+        </div>
+
+        <label>
+          <span>Project requirements</span>
+          <textarea
+            id="requirements"
+            name="requirements"
+            rows="9"
+            placeholder="Paste the job post or project brief here."
+            required
+          ></textarea>
+        </label>
+
+        <div class="field">
+          <span>Attachment files</span>
+          <label class="drop" id="drop">
+            <input id="files" name="files" type="file" multiple />
+            <svg class="icon drop-icon"><use href="#i-upload"></use></svg>
+            <strong>Drop files or click to add</strong>
+            <em>PDF, Word, TXT, MD, CSV, JSON</em>
+          </label>
+          <ul class="file-list" id="file-list"></ul>
+        </div>
+
+        <div class="metric-row">
+          <label>
+            <span>Timeline</span>
+            <input id="timeline" type="text" placeholder="e.g. 2–3 weeks" />
+          </label>
+          <label>
+            <span>Budget</span>
+            <input id="budget" type="text" placeholder="e.g. $1,500" />
+          </label>
+        </div>
+
+        <div class="style-row">
+          <label class="grow">
+            <span>Bid style</span>
+            <select id="style-id" name="style_id" required></select>
+          </label>
+          <button class="ghost" id="open-styles" type="button">
+            <svg class="icon"><use href="#i-styles"></use></svg>
+            Manage styles
+          </button>
+        </div>
+        <p class="hint chip" id="style-hint"></p>
+
+        <div class="form-actions">
+          <button class="primary" id="generate" type="submit">
+            <svg class="icon"><use href="#i-pen"></use></svg>
+            Make bid
+          </button>
+        </div>
+      </form>
+
+      <section class="panel result">
+        <div class="result-head">
+          <div class="panel-head compact">
+            <span class="step">02</span>
+            <div>
+              <h2>Generated bid</h2>
+              <p class="meta" id="result-meta">Choose a style, then make a bid.</p>
+            </div>
+          </div>
+          <p class="meta" id="result-time"></p>
+          <div class="actions">
+            <button class="ghost" id="copy" type="button" disabled>
+              <svg class="icon"><use href="#i-copy"></use></svg>
+              Copy
+            </button>
+            <button class="ghost" id="download" type="button" disabled>
+              <svg class="icon"><use href="#i-download"></use></svg>
+              Download
+            </button>
+          </div>
+        </div>
+        <div class="output empty" id="output" aria-live="polite">Your bid will appear here.</div>
+      </section>
+    </main>
+
+    <dialog id="settings-dialog">
+      <form method="dialog" class="dialog">
+        <h2><svg class="icon"><use href="#i-settings"></use></svg> Settings</h2>
+        <label>
+          <span>Provider</span>
+          <select id="provider">
+            <option value="gemini">Gemini</option>
+            <option value="deepseek">DeepSeek</option>
+            <option value="ollama">Local Ollama</option>
+          </select>
+        </label>
+        <label id="key-field">
+          <span id="key-label">API key</span>
+          <input id="api-key" type="password" autocomplete="off" placeholder="Paste your API key" />
+        </label>
+        <label>
+          <span>Model</span>
+          <input id="model" type="text" placeholder="deepseek-chat" />
+        </label>
+        <p class="hint" id="settings-hint">Gemini is called from this browser, so Google sees the browser network.</p>
+        <div class="dialog-actions">
+          <button class="ghost" value="cancel" type="submit">
+            <svg class="icon"><use href="#i-close"></use></svg>
+            Close
+          </button>
+          <button class="primary" id="save-settings" type="button">
+            <svg class="icon"><use href="#i-save"></use></svg>
+            Save
+          </button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="styles-dialog">
+      <div class="dialog">
+        <h2><svg class="icon"><use href="#i-styles"></use></svg> Account styles</h2>
+        <p class="hint">Each style can have several bid-making prompts. The first bid uses prompt 1, the next uses prompt 2, then it repeats.</p>
+        <div class="style-split">
+          <ul class="style-list" id="style-list"></ul>
+          <form id="style-form">
+            <label>
+              <span>Style name</span>
+              <input id="style-name" required placeholder="Account A — Professional" />
+            </label>
+            <label>
+              <span>Tone</span>
+              <input id="style-tone" placeholder="Calm, confident, no slang" />
+            </label>
+            <label>
+              <span>Voice</span>
+              <input id="style-voice" placeholder="First person, short sentences" />
+            </label>
+            <label>
+              <span>Length</span>
+              <input id="style-length" placeholder="Medium, about 220–350 words" />
+            </label>
+            <label>
+              <span>Notes</span>
+              <textarea id="style-notes" rows="4" placeholder="What this account should always do or avoid."></textarea>
+            </label>
+            <div class="field">
+              <span>Bid making prompts</span>
+              <div id="prompt-list"></div>
+              <button class="ghost" id="add-prompt" type="button">
+                <svg class="icon"><use href="#i-plus"></use></svg>
+                Add another prompt
+              </button>
+            </div>
+            <div class="dialog-actions">
+              <button class="ghost" id="new-style" type="button">
+                <svg class="icon"><use href="#i-plus"></use></svg>
+                New
+              </button>
+              <button class="danger" id="delete-style" type="button">
+                <svg class="icon"><use href="#i-trash"></use></svg>
+                Delete
+              </button>
+              <button class="primary" type="submit">
+                <svg class="icon"><use href="#i-save"></use></svg>
+                Save style
+              </button>
+            </div>
+          </form>
+        </div>
+        <button class="ghost close-wide" id="close-styles" type="button">
+          <svg class="icon"><use href="#i-close"></use></svg>
+          Close
+        </button>
+      </div>
+    </dialog>
+
+    <div class="toasts" id="toasts" popover="manual" aria-live="polite"></div>
+    <script src="/static/app.js?v=13" type="module"></script>
+  </body>
+</html>
