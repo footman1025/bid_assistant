@@ -8,8 +8,7 @@ const resultMeta = document.querySelector("#result-meta");
 const copyBtn = document.querySelector("#copy");
 const downloadBtn = document.querySelector("#download");
 const generateBtn = document.querySelector("#generate");
-const timelineInput = document.querySelector("#timeline");
-const budgetInput = document.querySelector("#budget");
+const requirementsInput = document.querySelector("#requirements");
 const statTime = document.querySelector("#stat-time");
 const statTimeline = document.querySelector("#stat-timeline");
 const statBudget = document.querySelector("#stat-budget");
@@ -89,13 +88,84 @@ function formatDuration(ms) {
   return seconds < 10 ? `${seconds.toFixed(1)}s` : `${Math.round(seconds)}s`;
 }
 
-function updateProjectStats() {
-  const timeline = timelineInput.value.trim();
-  const budget = budgetInput.value.trim();
-  statTimeline.textContent = timeline || "Not set";
-  statBudget.textContent = budget || "Not set";
-  localStorage.setItem("bid.timeline", timeline);
-  localStorage.setItem("bid.budget", budget);
+function cleanMetric(value) {
+  const cleaned = String(value || "")
+    .replace(/\s+/g, " ")
+    .replace(/^[\s\-–—:|]+|[\s\-–—:|,.;]+$/g, "")
+    .trim();
+  if (cleaned.length > 48) {
+    return cleaned.slice(0, 48).replace(/\s+\S*$/, "");
+  }
+  return cleaned;
+}
+
+function usableMetric(value) {
+  const cleaned = cleanMetric(value);
+  if (!cleaned || /^(not stated|not set|not in brief|n\/a|none|unknown)$/i.test(cleaned)) {
+    return "";
+  }
+  return cleaned;
+}
+
+function firstMatch(text, patterns) {
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match) {
+      const value = usableMetric(match[1] || match[0]);
+      if (value) return value;
+    }
+  }
+  return "";
+}
+
+function extractProjectMetrics(text) {
+  const source = text || "";
+  const timeline = firstMatch(source, [
+    /(?:expected\s+)?(?:timeline|timeframe|duration|deadline|delivery(?:\s+date)?|due(?:\s+date)?|project\s+length|time\s+needed)\s*[:\-–—]?\s*([^\n.]{2,50})/i,
+    /(?:needed|due|deliver(?:ed|y)?|finish(?:ed)?|complete(?:d)?)\s+(?:in|by|within)\s+([^\n.]{2,40})/i,
+    /(\d+\s*(?:[-–—]|to)\s*\d+\s*(?:hours?|days?|weeks?|months?))/i,
+    /(less than 1 month|1 to 3 months|3 to 6 months|more than 6 months)/i,
+    /((?:about|around|within)?\s*\d+\s*(?:hours?|days?|weeks?|months?))/i,
+  ]);
+  const budget = firstMatch(source, [
+    /(?:expected\s+)?(?:budget|hourly\s+range|hourly(?:\s+rate)?|fixed[-\s]?price|price|cost|compensation|rate)\s*[:\-–—]?\s*(\$?\s*[0-9][\d,]*(?:\.\d{1,2})?(?:\s*[-–—to]+\s*\$?\s*[0-9][\d,]*(?:\.\d{1,2})?)?(?:\s*(?:USD|EUR|GBP|usd|\/\s*hr|\/hr|per hour|an hour))?)/i,
+    /(\$\s*[0-9][\d,]*(?:\.\d{1,2})?(?:\s*[-–—]\s*\$\s*[0-9][\d,]*(?:\.\d{1,2})?)?(?:\s*(?:USD|usd|\/\s*hr|\/hr|per hour))?)/,
+    /([0-9][\d,]*(?:\.\d{1,2})?\s*(?:[-–—]|to)\s*[0-9][\d,]*(?:\.\d{1,2})?\s*(?:USD|EUR|GBP)(?:\s*\/\s*hr)?)/i,
+  ]);
+  return { timeline, budget };
+}
+
+function splitBidAndMetrics(text) {
+  const raw = (text || "").trim();
+  const match = raw.match(/<<METRICS\s+timeline=(.*?)\s*\|\s*budget=(.*?)>>\s*$/is);
+  if (!match) {
+    const found = extractProjectMetrics(raw);
+    return { bid: raw, timeline: found.timeline, budget: found.budget };
+  }
+  return {
+    bid: raw.slice(0, match.index).trim(),
+    timeline: usableMetric(match[1]),
+    budget: usableMetric(match[2]),
+  };
+}
+
+function pickMetric(...values) {
+  for (const value of values) {
+    const cleaned = usableMetric(value);
+    if (cleaned) return cleaned;
+  }
+  return "";
+}
+
+function setProjectStats(timeline, budget) {
+  statTimeline.textContent = usableMetric(timeline) || "Not in brief";
+  statBudget.textContent = usableMetric(budget) || "Not in brief";
+}
+
+function updateProjectStats(extraText = "") {
+  const fromBrief = extractProjectMetrics(requirementsInput.value);
+  const fromExtra = extractProjectMetrics(extraText);
+  setProjectStats(pickMetric(fromBrief.timeline, fromExtra.timeline), pickMetric(fromBrief.budget, fromExtra.budget));
 }
 
 let lastProvider = "gemini";
@@ -278,15 +348,14 @@ fileList.addEventListener("click", (event) => {
   showToast("File removed.");
 });
 
-timelineInput.addEventListener("input", updateProjectStats);
-budgetInput.addEventListener("input", updateProjectStats);
+requirementsInput.addEventListener("input", () => updateProjectStats(lastBid));
 document.querySelector("#focus-timeline").addEventListener("click", () => {
-  timelineInput.focus();
-  timelineInput.scrollIntoView({ behavior: "smooth", block: "center" });
+  requirementsInput.focus();
+  requirementsInput.scrollIntoView({ behavior: "smooth", block: "center" });
 });
 document.querySelector("#focus-budget").addEventListener("click", () => {
-  budgetInput.focus();
-  budgetInput.scrollIntoView({ behavior: "smooth", block: "center" });
+  requirementsInput.focus();
+  requirementsInput.scrollIntoView({ behavior: "smooth", block: "center" });
 });
 
 styleSelect.addEventListener("change", updateStyleHint);
@@ -433,8 +502,8 @@ async function generateGeminiInBrowser(system, user) {
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
-  const requirements = document.querySelector("#requirements").value.trim();
-    if (!requirements) {
+  const requirements = requirementsInput.value.trim();
+  if (!requirements) {
     setOutput("Add the project requirements first.", "error");
     showToast("Add the project requirements first.", "err");
     return;
@@ -448,8 +517,9 @@ form.addEventListener("submit", async (event) => {
   data.append("api_key", apiKeyInput.value.trim());
   data.append("model", modelInput.value.trim());
   data.append("provider", provider);
-  data.append("timeline", timelineInput.value.trim());
-  data.append("budget", budgetInput.value.trim());
+  const fromBrief = extractProjectMetrics(requirements);
+  data.append("timeline", fromBrief.timeline);
+  data.append("budget", fromBrief.budget);
   selectedFiles.forEach((file) => data.append("files", file));
 
   setBusy(true);
@@ -464,9 +534,13 @@ form.addEventListener("submit", async (event) => {
   try {
     let bid;
     let styleName;
+    let serverTimeline = "";
+    let serverBudget = "";
     if (provider === "gemini") {
       const prepared = await prepareBid(data);
       styleName = prepared.style;
+      serverTimeline = prepared.timeline || "";
+      serverBudget = prepared.budget || "";
       bid = await generateGeminiInBrowser(prepared.system, prepared.user);
       await fetch(`/api/styles/${styleSelect.value}/use`, { method: "POST" });
       await fetchStyles();
@@ -478,14 +552,21 @@ form.addEventListener("submit", async (event) => {
       }
       styleName = payload.style;
       bid = payload.bid;
+      serverTimeline = payload.timeline || "";
+      serverBudget = payload.budget || "";
     }
-    lastBid = bid;
+    const parsed = splitBidAndMetrics(bid);
+    lastBid = parsed.bid;
+    const briefMetrics = extractProjectMetrics(requirements);
+    setProjectStats(
+      pickMetric(parsed.timeline, serverTimeline, briefMetrics.timeline),
+      pickMetric(parsed.budget, serverBudget, briefMetrics.budget),
+    );
     const elapsed = formatDuration(performance.now() - started);
     setOutput(lastBid);
     resultMeta.textContent = `${styleName} · ${lastBid.split(/\s+/).filter(Boolean).length} words`;
     statTime.textContent = elapsed;
     resultTime.textContent = `Generated in ${elapsed}`;
-    updateProjectStats();
     copyBtn.disabled = false;
     downloadBtn.disabled = false;
     showToast("Bid ready.");
@@ -525,7 +606,5 @@ downloadBtn.addEventListener("click", () => {
 
 setOutput("Your bid will appear here.", "empty");
 loadSettings();
-timelineInput.value = localStorage.getItem("bid.timeline") || "";
-budgetInput.value = localStorage.getItem("bid.budget") || "";
 fetchStyles();
 updateProjectStats();

@@ -112,7 +112,6 @@ dialog {
   border-radius: 12px;
   background: #fff;
   text-align: left;
-  cursor: pointer;
 }
 
 .stat span {
@@ -129,12 +128,6 @@ dialog {
   margin-top: 2px;
   font-size: 0.92rem;
   font-weight: 500;
-}
-
-.metric-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
 }
 
 .brand {
@@ -627,7 +620,6 @@ dialog::backdrop {
   .result-head,
   .top,
   .style-row,
-  .metric-row,
   .project-stats {
     grid-template-columns: 1fr;
     display: grid;

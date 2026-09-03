@@ -7,7 +7,7 @@
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="/static/favicon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/static/favicon.png" />
-    <link rel="stylesheet" href="/static/app.css?v=15" />
+    <link rel="stylesheet" href="/static/app.css?v=16" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -81,14 +81,14 @@
             <span>Generate time</span>
             <strong id="stat-time">—</strong>
           </div>
-          <button class="stat" id="focus-timeline" type="button">
+          <div class="stat" id="focus-timeline">
             <span>Expected timeline</span>
-            <strong id="stat-timeline">Not set</strong>
-          </button>
-          <button class="stat" id="focus-budget" type="button">
+            <strong id="stat-timeline">Not in brief</strong>
+          </div>
+          <div class="stat" id="focus-budget">
             <span>Expected budget</span>
-            <strong id="stat-budget">Not set</strong>
-          </button>
+            <strong id="stat-budget">Not in brief</strong>
+          </div>
         </div>
         <button class="ghost" id="open-settings" type="button">
           <svg class="icon"><use href="#i-settings"></use></svg>
@@ -117,17 +117,6 @@
             required
           ></textarea>
         </label>
-
-        <div class="metric-row">
-          <label>
-            <span>Expected timeline</span>
-            <input id="timeline" type="text" placeholder="e.g. 2–3 weeks" />
-          </label>
-          <label>
-            <span>Expected budget</span>
-            <input id="budget" type="text" placeholder="e.g. $1,500" />
-          </label>
-        </div>
 
         <div class="field">
           <span>Attachment files</span>
@@ -278,6 +267,6 @@
     </dialog>
 
     <div class="toasts" id="toasts" popover="manual" aria-live="polite"></div>
-    <script src="/static/app.js?v=15" type="module"></script>
+    <script src="/static/app.js?v=16" type="module"></script>
   </body>
 </html>

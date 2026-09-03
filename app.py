@@ -1,6 +1,7 @@
 import io
 import json
 import os
+import re
 import uuid
 from pathlib import Path
 
@@ -114,7 +115,12 @@ def build_bid_prompt(
         "Write only the bid, ready to send. No title, no notes, no preamble.\n"
         "Stay faithful to the project requirements and the user's bid prompt.\n"
         "Do not invent clients, prices, timelines, or credentials that were not provided.\n"
-        "If a detail is missing, write around it or ask one short clarifying question at the end."
+        "If a detail is missing, write around it or ask one short clarifying question at the end.\n"
+        "After the bid, add exactly one last line in this format and nothing after it:\n"
+        "<<METRICS timeline=... | budget=...>>\n"
+        "Use the timeline and budget stated in the project requirements or attachments. "
+        "If the bid itself proposes a schedule or price, use those values. "
+        "If a value is not stated, write Not stated."
     )
     user = f"""BID STYLE
 Name: {style.get("name", "")}
@@ -130,15 +136,105 @@ PROJECT REQUIREMENTS
 {requirements.strip()}
 
 PROJECT TIMELINE
-{timeline.strip() or "(not provided)"}
+{timeline.strip() or "(not provided — extract from the brief if present)"}
 
 PROJECT BUDGET
-{budget.strip() or "(not provided)"}
+{budget.strip() or "(not provided — extract from the brief if present)"}
 
 ATTACHMENT TEXT
 {attachments.strip() or "(none)"}
 """
     return system, user
+
+
+_BUDGET_PATTERNS = [
+    re.compile(
+        r"(?:expected\s+)?(?:budget|hourly\s+range|hourly(?:\s+rate)?|fixed[-\s]?price|price|cost|compensation|rate)"
+        r"\s*[:\-–—]?\s*"
+        r"(\$?\s*[0-9][\d,]*(?:\.\d{1,2})?(?:\s*[-–—to]+\s*\$?\s*[0-9][\d,]*(?:\.\d{1,2})?)?"
+        r"(?:\s*(?:USD|EUR|GBP|usd|\/\s*hr|\/hr|per hour|an hour))?)",
+        re.I,
+    ),
+    re.compile(
+        r"(\$\s*[0-9][\d,]*(?:\.\d{1,2})?(?:\s*[-–—]\s*\$\s*[0-9][\d,]*(?:\.\d{1,2})?)?"
+        r"(?:\s*(?:USD|usd|\/\s*hr|\/hr|per hour))?)"
+    ),
+    re.compile(
+        r"([0-9][\d,]*(?:\.\d{1,2})?\s*(?:[-–—]|to)\s*[0-9][\d,]*(?:\.\d{1,2})?\s*(?:USD|EUR|GBP)(?:\s*\/\s*hr)?)",
+        re.I,
+    ),
+]
+
+_TIMELINE_PATTERNS = [
+    re.compile(
+        r"(?:expected\s+)?(?:timeline|timeframe|duration|deadline|delivery(?:\s+date)?|due(?:\s+date)?|"
+        r"project\s+length|time\s+needed)\s*[:\-–—]?\s*([^\n.]{2,50})",
+        re.I,
+    ),
+    re.compile(
+        r"(?:needed|due|deliver(?:ed|y)?|finish(?:ed)?|complete(?:d)?)\s+(?:in|by|within)\s+([^\n.]{2,40})",
+        re.I,
+    ),
+    re.compile(r"(\d+\s*(?:[-–—]|to)\s*\d+\s*(?:hours?|days?|weeks?|months?))", re.I),
+    re.compile(r"(less than 1 month|1 to 3 months|3 to 6 months|more than 6 months)", re.I),
+    re.compile(r"((?:about|around|within)?\s*\d+\s*(?:hours?|days?|weeks?|months?))", re.I),
+]
+
+_METRICS_LINE = re.compile(
+    r"<<METRICS\s+timeline=(.*?)\s*\|\s*budget=(.*?)>>\s*$",
+    re.I | re.S,
+)
+
+
+def clean_metric(value: str) -> str:
+    cleaned = re.sub(r"\s+", " ", value or "").strip(" \t-–—:|")
+    cleaned = re.sub(r"[.,;]+$", "", cleaned)
+    if len(cleaned) > 48:
+        cleaned = cleaned[:48].rsplit(" ", 1)[0]
+    return cleaned
+
+
+def usable_metric(value: str) -> str:
+    cleaned = clean_metric(value)
+    if cleaned.lower() in {"", "not stated", "not set", "n/a", "none", "unknown", "(not provided)"}:
+        return ""
+    return cleaned
+
+
+def extract_project_metrics(text: str) -> tuple[str, str]:
+    timeline = ""
+    budget = ""
+    for pattern in _TIMELINE_PATTERNS:
+        match = pattern.search(text or "")
+        if match:
+            timeline = usable_metric(match.group(1))
+            if timeline:
+                break
+    for pattern in _BUDGET_PATTERNS:
+        match = pattern.search(text or "")
+        if match:
+            budget = usable_metric(match.group(1))
+            if budget:
+                break
+    return timeline, budget
+
+
+def split_bid_and_metrics(text: str) -> tuple[str, str, str]:
+    raw = (text or "").strip()
+    match = _METRICS_LINE.search(raw)
+    if not match:
+        found_timeline, found_budget = extract_project_metrics(raw)
+        return raw, found_timeline, found_budget
+    bid = raw[: match.start()].strip()
+    return bid, usable_metric(match.group(1)), usable_metric(match.group(2))
+
+
+def pick_metric(*values: str) -> str:
+    for value in values:
+        cleaned = usable_metric(value)
+        if cleaned:
+            return cleaned
+    return ""
 
 
 def http_error_detail(data: dict, fallback: str) -> str:
@@ -326,7 +422,7 @@ async def collect_prompt(
     files: list[UploadFile] | None,
     timeline: str = "",
     budget: str = "",
-) -> tuple[dict, str, str]:
+) -> tuple[dict, str, str, str, str]:
     if not requirements.strip():
         raise HTTPException(status_code=400, detail="Add the project requirements")
 
@@ -348,15 +444,20 @@ async def collect_prompt(
         if text:
             attachment_parts.append(f"--- {upload.filename} ---\n{text[:20000]}")
 
+    attachments = "\n\n".join(attachment_parts)
+    found_timeline, found_budget = extract_project_metrics(f"{requirements}\n{attachments}")
+    timeline = pick_metric(timeline, found_timeline)
+    budget = pick_metric(budget, found_budget)
+
     system, user = build_bid_prompt(
         requirements=requirements,
         prompt=next_prompt(style),
         style=style,
-        attachments="\n\n".join(attachment_parts),
+        attachments=attachments,
         timeline=timeline,
         budget=budget,
     )
-    return style, system, user
+    return style, system, user, timeline, budget
 
 
 @app.post("/api/prepare")
@@ -368,7 +469,7 @@ async def prepare_bid(
     budget: str = Form(""),
     files: list[UploadFile] | None = File(None),
 ) -> dict:
-    style, system, user = await collect_prompt(
+    style, system, user, timeline, budget = await collect_prompt(
         requirements, prompt, style_id, files, timeline, budget
     )
     prompts = style_prompts(style)
@@ -379,6 +480,8 @@ async def prepare_bid(
         "user": user,
         "prompt_index": index + 1 if prompts else 0,
         "prompt_count": len(prompts),
+        "timeline": timeline,
+        "budget": budget,
     }
 
 
@@ -395,7 +498,7 @@ async def generate_bid(
     budget: str = Form(""),
     files: list[UploadFile] | None = File(None),
 ) -> dict:
-    style, system, user = await collect_prompt(
+    style, system, user, timeline, budget = await collect_prompt(
         requirements, prompt, style_id, files, timeline, budget
     )
     chosen = (provider or "gemini").strip().lower()
@@ -434,5 +537,8 @@ async def generate_bid(
     else:
         raise HTTPException(status_code=400, detail="Choose Gemini, OpenAI, DeepSeek, or Ollama in Settings.")
 
+    bid, bid_timeline, bid_budget = split_bid_and_metrics(bid)
+    timeline = pick_metric(bid_timeline, timeline)
+    budget = pick_metric(bid_budget, budget)
     mark_style_used(style["id"])
-    return {"bid": bid, "style": style["name"]}
+    return {"bid": bid, "style": style["name"], "timeline": timeline, "budget": budget}
