@@ -409,6 +409,17 @@ async def generate_bid(
     elif chosen == "ollama":
         host = (base_url or os.getenv("OLLAMA_HOST") or "http://127.0.0.1:11434").strip()
         bid = call_ollama(host, chosen_model or "llama3.2", system, user)
+    elif chosen == "openai":
+        key = (api_key or os.getenv("OPENAI_API_KEY") or "").strip()
+        if not key:
+            raise HTTPException(status_code=400, detail="Add an OpenAI API key in Settings.")
+        bid = call_openai_compatible(
+            "https://api.openai.com",
+            key,
+            chosen_model or "gpt-4o-mini",
+            system,
+            user,
+        )
     elif chosen == "deepseek":
         key = (api_key or os.getenv("DEEPSEEK_API_KEY") or "").strip()
         if not key:
@@ -421,7 +432,7 @@ async def generate_bid(
             user,
         )
     else:
-        raise HTTPException(status_code=400, detail="Choose Gemini, DeepSeek, or Ollama in Settings.")
+        raise HTTPException(status_code=400, detail="Choose Gemini, OpenAI, DeepSeek, or Ollama in Settings.")
 
     mark_style_used(style["id"])
     return {"bid": bid, "style": style["name"]}

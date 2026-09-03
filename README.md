@@ -17,8 +17,10 @@ pip install -r requirements.txt
 copy .env.example .env
 ```
 
-OpenAI and Gemini both block some networks by location. In **Settings**, pick one of these:
+Some providers block requests by location. In **Settings**, pick one of these:
 
+- **Gemini** — paste a Google AI Studio key. Called from the browser.
+- **OpenAI** — paste an OpenAI key (`sk-…`). Model: `gpt-4o-mini`.
 - **DeepSeek** — paste a key from [platform.deepseek.com](https://platform.deepseek.com). Model: `deepseek-chat`.
 - **Local Ollama** — install [Ollama](https://ollama.com), then run `ollama pull llama3.2`. No key needed.
 

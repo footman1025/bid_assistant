@@ -33,6 +33,12 @@ const PROVIDER_DEFAULTS = {
     hint: "Gemini is called from this browser, so Google sees the browser network.",
     needsKey: true,
   },
+  openai: {
+    model: "gpt-4o-mini",
+    keyLabel: "OpenAI API key",
+    hint: "Paste your OpenAI key (starts with sk-). Use model gpt-4o-mini or gpt-4o.",
+    needsKey: true,
+  },
   deepseek: {
     model: "deepseek-chat",
     keyLabel: "DeepSeek API key",
@@ -92,8 +98,17 @@ function updateProjectStats() {
   localStorage.setItem("bid.budget", budget);
 }
 
+let lastProvider = "gemini";
+
+function persistProviderFields(provider) {
+  localStorage.setItem(`bid.apiKey.${provider}`, apiKeyInput.value.trim());
+  localStorage.setItem(`bid.model.${provider}`, modelInput.value.trim());
+}
+
 function persistSettings() {
-  localStorage.setItem("bid.provider", providerSelect.value);
+  const provider = providerSelect.value;
+  persistProviderFields(provider);
+  localStorage.setItem("bid.provider", provider);
   localStorage.setItem("bid.apiKey", apiKeyInput.value.trim());
   localStorage.setItem("bid.model", modelInput.value.trim());
 }
@@ -105,18 +120,31 @@ function syncProviderFields() {
   keyField.classList.toggle("is-hidden", !config.needsKey);
 }
 
+function fillProviderFields(provider) {
+  const config = PROVIDER_DEFAULTS[provider] || PROVIDER_DEFAULTS.gemini;
+  apiKeyInput.value = localStorage.getItem(`bid.apiKey.${provider}`) || "";
+  modelInput.value = localStorage.getItem(`bid.model.${provider}`) || config.model;
+  syncProviderFields();
+}
+
 function loadSettings() {
   const storedProvider = localStorage.getItem("bid.provider") || "gemini";
-  providerSelect.value = PROVIDER_DEFAULTS[storedProvider] ? storedProvider : "deepseek";
-  apiKeyInput.value = localStorage.getItem("bid.apiKey") || "";
-  const storedModel = localStorage.getItem("bid.model") || "";
-  const provider = providerSelect.value;
-  const stale =
-    !storedModel ||
-    storedModel.startsWith("gpt-") ||
-    (provider !== "gemini" && storedModel.startsWith("gemini-"));
-  modelInput.value = stale ? PROVIDER_DEFAULTS[provider].model : storedModel;
-  syncProviderFields();
+  const provider = PROVIDER_DEFAULTS[storedProvider] ? storedProvider : "gemini";
+  providerSelect.value = provider;
+  lastProvider = provider;
+  fillProviderFields(provider);
+  if (!apiKeyInput.value) {
+    apiKeyInput.value = localStorage.getItem("bid.apiKey") || "";
+  }
+  if (!localStorage.getItem(`bid.model.${provider}`)) {
+    const storedModel = localStorage.getItem("bid.model") || "";
+    const wrongFamily =
+      (provider === "openai" && !storedModel.startsWith("gpt-")) ||
+      (provider === "gemini" && !storedModel.startsWith("gemini-")) ||
+      (provider === "deepseek" && !storedModel.startsWith("deepseek-")) ||
+      (provider === "ollama" && (storedModel.startsWith("gpt-") || storedModel.startsWith("gemini-") || storedModel.startsWith("deepseek-")));
+    modelInput.value = !storedModel || wrongFamily ? PROVIDER_DEFAULTS[provider].model : storedModel;
+  }
 }
 
 function renderFiles() {
@@ -264,8 +292,9 @@ document.querySelector("#focus-budget").addEventListener("click", () => {
 styleSelect.addEventListener("change", updateStyleHint);
 
 providerSelect.addEventListener("change", () => {
-  modelInput.value = PROVIDER_DEFAULTS[providerSelect.value].model;
-  syncProviderFields();
+  persistProviderFields(lastProvider);
+  lastProvider = providerSelect.value;
+  fillProviderFields(lastProvider);
 });
 
 document.querySelector("#open-settings").addEventListener("click", () => {
